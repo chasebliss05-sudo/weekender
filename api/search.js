@@ -11,6 +11,13 @@ const CITIES = {
   BER: "Berlin", MUC: "Munich", PRG: "Prague", BUD: "Budapest", ROM: "Rome",
   FLR: "Florence", LON: "London", DUB: "Dublin"
 };
+// Neighbourhoods where locals eat, away from the main tourist strip
+const FOOD_HOODS = {
+  BCN: "Gràcia", MAD: "Lavapiés", LIS: "Arroios", PAR: "11th arrondissement", AMS: "De Pijp",
+  BER: "Neukölln", MUC: "Glockenbachviertel", PRG: "Vinohrady", BUD: "District VIII", ROM: "Testaccio",
+  FLR: "San Frediano", LON: "Hackney", DUB: "Stoneybatter"
+};
+const CHAINS = /mcdonald|burger king|kfc|starbucks|subway|five guys|hard rock|domino|pizza hut|vapiano|wagamama|nando|telepizza|costa coffee|tim hortons|dunkin/i;
 const isDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || "");
 
 async function serp(params) {
@@ -64,6 +71,23 @@ export default async function handler(req, res) {
         .slice(0, 8);
       res.setHeader("Cache-Control", "s-maxage=21600, stale-while-revalidate=86400");
       return res.json({ flights, url: j.search_metadata?.google_flights_url });
+    }
+
+    if (type === "food") {
+      if (!CITIES[city]) return res.status(400).json({ error: "Bad city" });
+      const hood = FOOD_HOODS[city];
+      const j = await serp({ engine: "google_maps", type: "search", hl: "en", api_key: key, q: `local restaurants in ${hood}, ${CITIES[city]}` });
+      const all = (j.local_results || []).map(p => ({
+        name: p.title, kind: p.type || "Restaurant", rating: p.rating || 0, reviews: p.reviews || 0,
+        price: p.price || "", address: p.address || "",
+        url: p.place_id ? `https://www.google.com/maps/place/?q=place_id:${p.place_id}` : `https://www.google.com/maps/search/${encodeURIComponent(p.title + " " + CITIES[city])}`
+      })).filter(p => p.name && !CHAINS.test(p.name));
+      // Local, not touristy: well rated, but not the mega-review spots every tour bus finds
+      let picks = all.filter(p => p.rating >= 4.4 && p.reviews >= 60 && p.reviews <= 4000);
+      if (picks.length < 4) picks = all.filter(p => p.rating >= 4.2 && p.reviews >= 30 && p.reviews <= 8000);
+      picks.sort((a, b) => (b.rating - a.rating) || (b.reviews - a.reviews));
+      res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=604800");
+      return res.json({ hood, food: picks.slice(0, 8) });
     }
 
     if (type === "stays") {

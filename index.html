@@ -23,7 +23,7 @@ button,select,input{font:inherit;color:inherit}
 .status{font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--mint);color:var(--green);white-space:nowrap}
 .status.est{background:#f1ede6;color:var(--mute)}
 /* layout */
-.wrap{max-width:1380px;margin:0 auto;padding:28px max(4vw,16px) 56px;display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:24px;align-items:start}
+.wrap{max-width:1380px;margin:0 auto;padding:28px max(4vw,16px) 56px;display:grid;grid-template-columns:minmax(0,350px) minmax(0,1fr);gap:24px;align-items:start}
 /* planner panel */
 .panel{background:var(--pine);color:#eef3f1;border-radius:24px;padding:32px 28px;display:grid;gap:20px;position:sticky;top:20px}
 .panel h1{margin:0;font-size:32px;line-height:1.1;color:#fff}
@@ -47,7 +47,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--coral)}
 .go:hover{background:var(--coral2)}
 .hint{margin:-8px 0 0;font-size:13px;color:#93a8a2;text-align:center}
 /* trip card */
-.trip{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:32px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,280px);gap:28px}
+.trip{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:32px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:24px}
 .trip-head{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
 .badges{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--mute)}
 .badge{background:var(--mint);color:var(--green);font-weight:600;padding:5px 12px;border-radius:999px}
@@ -55,7 +55,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--coral)}
 .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--mute);font-size:16px}
 .meta span{white-space:nowrap}
 .share{min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--soft);font-weight:600;cursor:pointer}
-.views{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.views button{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-weight:600;font-size:15px;cursor:pointer}.views button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.views{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.views button{min-height:40px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}.views button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .tabs{display:flex;gap:4px 22px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
 .tabs button{border:0;background:none;padding:12px 0;min-height:44px;font-size:17px;color:#9aa19d;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button small{font-size:13px;margin-left:4px}
@@ -141,7 +141,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--coral)}
       <div class="snap" id="snap"></div>
       <div class="smart" id="smart"></div>
     </aside>
-    <p class="foot">Prices marked Live come from Google Flights and Google Hotels for your dates. Trains, buses and anything marked Estimate are calculated from distance and typical student rates.</p>
+    <p class="foot">Prices marked Live come from Google Flights and Google Hotels for your dates, and food picks from Google Maps. Trains, buses and anything marked Estimate are calculated from distance and typical student rates.</p>
   </section>
 </main>
 <script>
@@ -176,11 +176,13 @@ const short=d=>d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const country=s=>s.split("-").map(w=>w[0].toUpperCase()+w.slice(1)).join(" ");
 const maps=(q,c)=>`https://www.google.com/maps/search/${encodeURIComponent(q.replace(/\s*\(.*?\)/g,"")+" "+c)}`;
-const LIKES=[["sites","Sightseeing"],["do","Activities"],["night","Nightlife"]];
+const LIKES=[["sites","Sightseeing"],["food","Food"],["do","Activities"],["night","Nightlife"]];
+const EAT={BCN:"Gràcia",MAD:"Lavapiés",LIS:"Arroios",PAR:"11th arrondissement",AMS:"De Pijp",BER:"Neukölln",MUC:"Glockenbachviertel",PRG:"Vinohrady",BUD:"District VIII",ROM:"Testaccio",FLR:"San Frediano",LON:"Hackney",DUB:"Stoneybatter"};
 const FOOD=30;
 
-let S={from:"BCN",to:"PRG",dep:iso(nextFri),ret:iso(addD(nextFri,3)),crew:3,budget:340,likes:["sites","do","night"],tab:"go"};
+let S={from:"BCN",to:"PRG",dep:iso(nextFri),ret:iso(addD(nextFri,3)),crew:3,budget:340,likes:["sites","food","do","night"],tab:"go"};
 try{Object.assign(S,JSON.parse(localStorage.getItem("wk2")||"{}"))}catch(e){}
+if(!S.fv){S.fv=1;if(!S.likes.includes("food"))S.likes.push("food")}
 if(!parse(S.dep)||parse(S.dep)<today){S.dep=iso(nextFri);S.ret=iso(addD(nextFri,3))}
 
 function dateFactor(dep,ret){
@@ -210,7 +212,7 @@ function stays(c,n,F){
 }
 
 /* live data */
-const LIVE={f:{},s:{}},CACHE={};
+const LIVE={f:{},s:{},e:{}},CACHE={};
 const getJ=u=>CACHE[u]||(CACHE[u]=fetch(u).then(r=>r.json().catch(()=>({error:"Live search not available here"})).then(j=>{if(!r.ok||j.error){delete CACHE[u];throw new Error(j.error||("HTTP "+r.status))}return j})));
 const keys=()=>({f:`${S.from}-${S.to}-${S.dep}-${S.ret}`,s:`${S.to}-${S.dep}-${S.ret}-${S.crew}`});
 function fetchLive(){
@@ -220,22 +222,26 @@ function fetchLive(){
     getJ(`/api/search?type=flights&from=${S.from}&to=${S.to}&dep=${S.dep}&ret=${S.ret}`).then(j=>{if(LIVE.f.key===k.f){LIVE.f={key:k.f,st:"ok",...j};render()}}).catch(e=>{if(LIVE.f.key===k.f){LIVE.f={key:k.f,st:"err",msg:e.message};render()}})}
   if(LIVE.s.key!==k.s||LIVE.s.st==="err"){LIVE.s={key:k.s,st:"loading"};
     getJ(`/api/search?type=stays&city=${S.to}&dep=${S.dep}&ret=${S.ret}&adults=${S.crew}`).then(j=>{if(LIVE.s.key===k.s){LIVE.s={key:k.s,st:"ok",...j};render()}}).catch(e=>{if(LIVE.s.key===k.s){LIVE.s={key:k.s,st:"err",msg:e.message};render()}})}
+  if(LIVE.e.key!==S.to||LIVE.e.st==="err"){const ek=S.to;LIVE.e={key:ek,st:"loading"};
+    getJ(`/api/search?type=food&city=${S.to}&dep=${S.dep}&ret=${S.ret}`).then(j=>{if(LIVE.e.key===ek){LIVE.e={key:ek,st:"ok",...j};render()}}).catch(e=>{if(LIVE.e.key===ek){LIVE.e={key:ek,st:"err",msg:e.message};render()}})}
   render();
 }
 const clock=s=>(s||"").slice(11,16);
 
 /* itinerary */
 const BLURB={sites:"See it in daylight, then wander the streets around it.",do:"Check if it needs a ticket and book ahead.",night:"Go as a group and keep your stay’s address saved offline."};
-const KIND={sites:["Explore",""],do:["Activity",""],night:["Night out","o"],log:["Logistics","n"]};
-function plan(b,days){
+const KIND={sites:["Explore",""],do:["Activity",""],night:["Night out","o"],food:["Local food","l"],log:["Logistics","n"]};
+function plan(b,days,foods){
   const q={sites:b.sites,do:b.act,night:b.night},i={sites:0,do:0,night:0};
   const take=k=>S.likes.includes(k)&&i[k]<q[k].length?q[k][i[k]++]:null;
-  const out=[];
+  const out=[];let fi=0;
   for(let d=0;d<days;d++){
-    const L=[],add=(t,k,h,p)=>h&&L.push({t,k,h,p:p||BLURB[k]});
-    if(d===0){add("15:00","log","Arrive and check in",`Drop your bags near ${b.hoods[0]} and save the address offline.`);add("17:30","sites",take("sites"))}
-    else if(d===days-1){let s=take("sites"),k="sites";if(!s){s=take("do");k="do"}add("10:00",k,s);add("14:00","log","Check out and head home","Leave a buffer for the airport or station.");out.push(L);continue}
-    else{add("10:00","sites",take("sites"));add("14:00","do",take("do"))}
+    const L=[],add=(t,k,h,p,url)=>h&&L.push({t,k,h,p:p||BLURB[k],url});
+    const eat=t=>{if(!S.likes.includes("food"))return;const x=foods.length?foods[fi++%foods.length]:null;
+      x?add(t,"food",x.name,`${x.kind}${x.rating?` · ${x.rating}★ (${x.reviews})`:""}${x.price?` · ${x.price}`:""}`,x.url):add(t,"food",`${t<"16"?"Lunch":"Dinner"} in ${EAT[b.code]}`,"Where locals eat, off the main tourist strip.",`https://www.google.com/maps/search/${encodeURIComponent("restaurants "+EAT[b.code]+" "+b.name)}`)};
+    if(d===0){add("15:00","log","Arrive and check in",`Drop your bags near ${b.hoods[0]} and save the address offline.`);add("17:30","sites",take("sites"));eat("19:30")}
+    else if(d===days-1){let s=take("sites"),k="sites";if(!s){s=take("do");k="do"}add("10:00",k,s);eat("12:30");add("14:00","log","Check out and head home","Leave a buffer for the airport or station.");out.push(L);continue}
+    else{add("10:00","sites",take("sites"));add("14:00","do",take("do"));eat("19:30")}
     add("21:30","night",take("night"));
     out.push(L);
   }
@@ -275,23 +281,28 @@ function render(){
   const Se=stays(b,n,F).map(x=>({...x,unit:`per person/night · ${eur(x.tot)} total`}));
   const St=(LH.length||LR.length?[...LH,...LR]:Se).sort((x,y)=>x.tot-y.tot);
   const t=T[0]?.p||0,s=St[0]?.tot||0,f=FOOD*days,each=t+s+f,B=S.budget;
-  const live=fOk||sOk,loading=[LIVE.f,LIVE.s].some(L=>L.st==="loading"&&(L.key===k.f||L.key===k.s));
+  const live=fOk||sOk||(LIVE.e.key===S.to&&LIVE.e.st==="ok"),loading=[LIVE.f,LIVE.s].some(L=>L.st==="loading"&&(L.key===k.f||L.key===k.s));
   $("status").textContent=loading?"Checking live prices…":live?"Live prices":LIVE.f.key&&(LIVE.f.key!==k.f||LIVE.s.key!==k.s)?"Estimates · press Build for live":"Estimated prices";
   $("status").className="status"+(live&&!loading?"":" est");
 
   /* tabs */
-  const P=plan(b,days),T2=P.map((_,i)=>[`d${i}`,`Day ${i+1}`,short(addD(dep,i))]);
-  if(!T2.some(x=>x[0]===S.tab)&&!["go","stay","pack"].includes(S.tab))S.tab="go";
+  const eOk=LIVE.e.key===S.to&&LIVE.e.st==="ok",FD=eOk?LIVE.e.food||[]:[];
+  const P=plan(b,days,FD),T2=P.map((_,i)=>[`d${i}`,`Day ${i+1}`,short(addD(dep,i))]);
+  if(!T2.some(x=>x[0]===S.tab)&&!["go","stay","eat","pack"].includes(S.tab))S.tab="go";
   const view=S.tab[0]==="d"?"plan":S.tab;
-  $("views").innerHTML=[["go","Getting there"],["stay","Where to stay"],["plan","Itinerary"],["pack","Checklist"]].map(v=>`<button type="button" data-t="${v[0]==="plan"?"d0":v[0]}" aria-pressed="${view===v[0]}">${v[1]}</button>`).join("");
+  $("views").innerHTML=[["go","Getting there"],["stay","Where to stay"],["plan","Itinerary"],["eat","Food"],["pack","Checklist"]].map(v=>`<button type="button" data-t="${v[0]==="plan"?"d0":v[0]}" aria-pressed="${view===v[0]}">${v[1]}</button>`).join("");
   $("tabs").innerHTML=view==="plan"?T2.map(x=>`<button type="button" role="tab" data-t="${x[0]}" aria-selected="${S.tab===x[0]}">${x[1]}<small>${x[2]}</small></button>`).join(""):"";
   $("tabs").style.display=view==="plan"?"":"none";
   let h="";
   if(S.tab[0]==="d"){const L=P[+S.tab.slice(1)]||[];
-    h=`<div class="list">${L.map(x=>`<div class="stop"><time>${x.t}</time><div><div class="tags"><span class="tag ${KIND[x.k][1]}">${KIND[x.k][0]}</span></div><h3>${esc(x.h)}</h3><p>${esc(x.p)}</p>${x.k!=="log"?`<div class="links"><a href="${maps(x.h,b.name)}" target="_blank" rel="noopener">Open in Maps →</a></div>`:""}</div><div></div></div>`).join("")||`<p class="note-live">Pick something you’re into to fill this day.</p>`}</div>`}
+    h=`<div class="list">${L.map(x=>`<div class="stop"><time>${x.t}</time><div><div class="tags"><span class="tag ${KIND[x.k][1]}">${KIND[x.k][0]}</span></div><h3>${esc(x.h)}</h3><p>${esc(x.p)}</p>${x.k!=="log"?`<div class="links"><a href="${esc(x.url||maps(x.h,b.name))}" target="_blank" rel="noopener">Open in Maps →</a></div>`:""}</div><div></div></div>`).join("")||`<p class="note-live">Pick something you’re into to fill this day.</p>`}</div>`}
   const note=(L,what)=>L.st==="loading"?`<p class="note-live">Checking live ${what}…</p>`:L.st==="err"?`<p class="note-live">Live ${what} unavailable (${esc(L.msg)}). Showing estimates.</p>`:"";
   if(S.tab==="go")h=(LIVE.f.key===k.f?note(LIVE.f,"flights"):"")+`<div class="list">${T.map(x=>stopRow(x,x.p+s+f<=B,"budget")).join("")}</div>`;
   if(S.tab==="stay")h=(LIVE.s.key===k.s?note(LIVE.s,"stays"):"")+`<div class="list">${St.map(x=>stopRow(x,x.tot+t+f<=B,"budget")).join("")}</div>`;
+  if(S.tab==="eat"){const hood=EAT[b.code],ms=q=>`https://www.google.com/maps/search/${encodeURIComponent(q+" "+hood+" "+b.name)}`;
+    h=(LIVE.e.key===S.to?note(LIVE.e,"food picks"):"")+`<p class="note-live">Local picks in ${esc(hood)}, where people who live in ${esc(b.name)} eat. Rated 4.4★ or higher on Google Maps, no chains, and skipping the mega-review spots tour groups find.</p>`+
+    (FD.length?`<div class="list">${FD.map(x=>`<div class="stop"><time>Eat</time><div><div class="tags"><span class="tag l">Local pick</span>${x.price?`<span class="tag">${esc(x.price)}</span>`:""}</div><h3>${esc(x.name)}</h3><p>${esc(x.kind)} · ${x.rating}★ from ${Number(x.reviews).toLocaleString("en")} reviews${x.address?` · ${esc(x.address)}`:""}</p><div class="links"><a href="${esc(x.url)}" target="_blank" rel="noopener">Open in Maps →</a></div></div><div></div></div>`).join("")}</div>`
+    :`<div class="list">${[["Local restaurants","Sit-down dinner where locals go"],["Cheap eats","Street food and quick bites"],["Bakery","Breakfast before sightseeing"]].map(x=>`<div class="stop"><time>Eat</time><div><h3>${x[0]} in ${esc(hood)}</h3><p>${x[1]}. Press Build my weekend for live picks.</p><div class="links"><a href="${ms(x[0])}" target="_blank" rel="noopener">Search in Maps →</a></div></div><div></div></div>`).join("")}</div>`)}
   if(S.tab==="pack")h=`<div class="check">${["Passport, plus a photo of it on your phone","Return ticket booked before the first night out","Card with no foreign fees, and €50 cash","Phone data or eSIM working in "+b.name,"Offline map of "+b.name+" saved","Padlock for the hostel locker","Charger and travel adapter","Group chat has the stay’s address","Emergency number in the EU and UK: 112"].map((x,i)=>`<label><input type="checkbox" id="ck${i}">${x}</label>`).join("")}</div>`;
   $("panel").innerHTML=h;
 
