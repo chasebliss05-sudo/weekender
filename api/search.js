@@ -37,6 +37,7 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({ error: "SERPAPI_KEY is not set in Vercel" });
 
   const { type, from, to, city, dep, ret } = req.query;
+  const adults = String(Math.min(8, Math.max(1, parseInt(req.query.adults, 10) || 1)));
   if (!isDate(dep) || !isDate(ret)) return res.status(400).json({ error: "Bad dates" });
 
   const common = { currency: "EUR", hl: "en", gl: "us", api_key: key };
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
       const base = { ...common, engine: "google_hotels", check_in_date: dep, check_out_date: ret, adults: "1", sort_by: "3" };
       const [h, r] = await Promise.all([
         serp({ ...base, q: "hostels in " + CITIES[city] }),
-        serp({ ...base, q: CITIES[city], vacation_rentals: "true" })
+        serp({ ...base, adults, q: CITIES[city], vacation_rentals: "true" })
       ]);
       const hUrl = h.search_metadata?.google_hotels_url, rUrl = r.search_metadata?.google_hotels_url;
       const pick = (j, u) => (j.properties || []).map(p => stay(p, u)).filter(p => p.perNight).slice(0, 6);
