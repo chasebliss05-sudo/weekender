@@ -76,7 +76,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--coral)}
 .stop .links{margin-top:10px;display:flex;gap:16px;font-size:14px}
 .stop .links a{color:var(--coral2);font-weight:600;text-decoration:none}
 .stop .links a:hover{text-decoration:underline}
-.stop.no{opacity:.55}
+
 .note-live{margin:0 0 12px;font-size:14px;color:var(--mute)}
 .check{display:grid;gap:10px}
 .check label{display:flex;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--soft);cursor:pointer}
@@ -179,7 +179,7 @@ const maps=(q,c)=>`https://www.google.com/maps/search/${encodeURIComponent(q.rep
 const LIKES=[["sites","Sightseeing"],["do","Activities"],["night","Nightlife"]];
 const FOOD=30;
 
-let S={from:"BCN",to:"PRG",dep:iso(nextFri),ret:iso(addD(nextFri,3)),crew:3,budget:340,likes:["sites","do","night"],tab:"d0"};
+let S={from:"BCN",to:"PRG",dep:iso(nextFri),ret:iso(addD(nextFri,3)),crew:3,budget:340,likes:["sites","do","night"],tab:"go"};
 try{Object.assign(S,JSON.parse(localStorage.getItem("wk2")||"{}"))}catch(e){}
 if(!parse(S.dep)||parse(S.dep)<today){S.dep=iso(nextFri);S.ret=iso(addD(nextFri,3))}
 
@@ -247,7 +247,7 @@ $("from").innerHTML=opts;$("to").innerHTML=opts;
 $("chips").innerHTML=LIKES.map(l=>`<button type="button" class="chip" data-k="${l[0]}">${l[1]}</button>`).join("");
 
 function stopRow(x,fit,label){
-  return`<div class="stop${fit?"":" no"}"><time>${esc(x.k)}</time><div><div class="tags"><span class="tag ${x.live?"l":"n"}">${x.live?"Live":"Estimate"}</span><span class="tag ${fit?"g":"n"}">${fit?"In budget":"Over "+label}</span></div><h3>${esc(x.m)}</h3><p>${esc(x.w)}</p><div class="links"><a href="${esc(x.url)}" target="_blank" rel="noopener">${x.live?"Book on":"Check on"} ${esc(x.src)} →</a></div></div><div class="price">${eur(x.p)}<small>${esc(x.unit)}</small></div></div>`;
+  return`<div class="stop${fit?"":" no"}"><time>${esc(x.k)}</time><div><div class="tags"><span class="tag ${x.live?"l":"n"}">${x.live?"Live":"Estimate"}</span><span class="tag ${fit?"g":"o"}">${fit?"In budget":"Over "+label}</span></div><h3>${esc(x.m)}</h3><p>${esc(x.w)}</p><div class="links"><a href="${esc(x.url)}" target="_blank" rel="noopener">${x.live?"Book on":"Check on"} ${esc(x.src)} →</a></div></div><div class="price">${eur(x.p)}<small>${esc(x.unit)}</small></div></div>`;
 }
 
 let summary="";
@@ -281,9 +281,9 @@ function render(){
 
   /* tabs */
   const P=plan(b,days),T2=P.map((_,i)=>[`d${i}`,`Day ${i+1}`,short(addD(dep,i))]);
-  if(!T2.some(x=>x[0]===S.tab)&&!["go","stay","pack"].includes(S.tab))S.tab="d0";
+  if(!T2.some(x=>x[0]===S.tab)&&!["go","stay","pack"].includes(S.tab))S.tab="go";
   const view=S.tab[0]==="d"?"plan":S.tab;
-  $("views").innerHTML=[["plan","Itinerary"],["go","Getting there"],["stay","Where to stay"],["pack","Checklist"]].map(v=>`<button type="button" data-t="${v[0]==="plan"?"d0":v[0]}" aria-pressed="${view===v[0]}">${v[1]}</button>`).join("");
+  $("views").innerHTML=[["go","Getting there"],["stay","Where to stay"],["plan","Itinerary"],["pack","Checklist"]].map(v=>`<button type="button" data-t="${v[0]==="plan"?"d0":v[0]}" aria-pressed="${view===v[0]}">${v[1]}</button>`).join("");
   $("tabs").innerHTML=view==="plan"?T2.map(x=>`<button type="button" role="tab" data-t="${x[0]}" aria-selected="${S.tab===x[0]}">${x[1]}<small>${x[2]}</small></button>`).join(""):"";
   $("tabs").style.display=view==="plan"?"":"none";
   let h="";
@@ -308,7 +308,7 @@ function render(){
 }
 
 $("f").addEventListener("input",e=>{if(e.target.type==="range"){S.budget=+e.target.value}else{S.from=$("from").value;S.to=$("to").value;S.dep=$("dep").value;S.ret=$("ret").value}render()});
-$("f").addEventListener("submit",e=>{e.preventDefault();if(S.tab==="pack")S.tab="d0";fetchLive();if(innerWidth<860)document.querySelector(".trip").scrollIntoView({behavior:"smooth"})});
+$("f").addEventListener("submit",e=>{e.preventDefault();if(S.tab==="pack")S.tab="go";fetchLive();if(innerWidth<860)document.querySelector(".trip").scrollIntoView({behavior:"smooth"})});
 $("cm").addEventListener("click",()=>{S.crew=Math.max(1,S.crew-1);render()});
 $("cp").addEventListener("click",()=>{S.crew=Math.min(8,S.crew+1);render()});
 $("chips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;const k=c.dataset.k;S.likes=S.likes.includes(k)?S.likes.filter(x=>x!==k):[...S.likes,k];render()});
